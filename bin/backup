@@ -1,0 +1,20 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Created by PhpStorm.
+ * User: nicolas
+ * Date: 05/02/17
+ * Time: 14:29
+ */
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Devgiants\Command;
+
+$application = new Application('backup', '0.1dev');
+
+// Register commands
+$application->add(new Command\DatabaseBackupCommand());
+
+$application->run();

@@ -1,0 +1,19 @@
+{
+    "name": "devgiants/backup",
+    "description": "Backup easing application for website in CLI",
+    "license": "MIT",
+    "require": {
+        "symfony/console": "^3.2",
+        "herrera-io/phar-update": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Devgiants\\": "src/Devgiants"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Devgiants\\Tests\\": "tests"
+        }
+    }
+}
