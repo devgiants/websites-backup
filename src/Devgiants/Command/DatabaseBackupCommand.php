@@ -24,6 +24,7 @@ class DatabaseBackupCommand extends Command
         self::DATABASE => self::ROOT_TEMP_PATH . "databases/",
         self::FILES => self::ROOT_TEMP_PATH . "files/"
     ];
+    const DEFAULT_RETENTION = 5;
 
     /**
      * @inheritdoc
@@ -64,7 +65,10 @@ class DatabaseBackupCommand extends Command
                         }
                     }
 
-
+                    // TODO array_merge with defaults
+                    if(!isset($configuration['retention'])) {
+                        $configuration['retention'] = self::DEFAULT_RETENTION;
+                    }
                     /*********************************************
                      * Backup
                      */
@@ -101,7 +105,7 @@ class DatabaseBackupCommand extends Command
                             }
                             $output->write("<info> DONE</info>" . PHP_EOL);
                             $dumpName = "{$site}_{$currentTimestamp}.sql.gz";
-                            $dumpPath = self::TEMP_PATHS[self::DATABASE] . "{$dumpName}";
+                            $dumpPath = self::TEMP_PATHS[self::DATABASE] .$dumpName;
 
                             $output->write("   - Start database export and compression...");
                             exec("mysqldump --user={$siteConfiguration['database']['user']} --password='{$siteConfiguration['database']['password']}' --single-transaction {$siteConfiguration['database']['name']} | gzip > $dumpPath");
@@ -135,12 +139,90 @@ class DatabaseBackupCommand extends Command
                                 }
                                 // TODO Remove all excluded files/folders
                                 // Compress files
-                                $archivePath = "{$siteTempPath}/{$site}_{$currentTimestamp}.tar.gz";
+                                $archiveName = "{$site}_{$currentTimestamp}.tar.gz";
+                                $archivePath = "{$siteTempPath}/{$archiveName}";
                                 $archive = new \PharData($archivePath);
                                 $archive->buildFromDirectory($siteTempPath);
                             } else {
                                 $output->writeln("<error>   - Error : \"{$siteConfiguration['files']['root_dir']}\" is not a valid directory path. Skip.</error>");
                             }
+
+                            /*********************************************
+                             * Store on external storages
+                             */
+                            $output->writeln("<comment>  - Storage</comment>");
+
+                            foreach($configuration['backup_storages'] as $storage) {
+                                switch($storage['type']) {
+                                    case "FTP":
+                                        // FTP connection (both SSL and clear mode)
+                                        if(isset($storage['ssl']) && $storage['ssl'] == true) {
+                                            $connectionId = ftp_ssl_connect($storage['server']);
+                                        }
+                                        else {
+                                            $connectionId = ftp_connect($storage['server']);
+                                        }
+
+                                        // Try to login
+                                        $loginResult = ftp_login($connectionId, $storage['user'], $storage['password']);
+
+                                        // If login successful
+                                        if($loginResult) {
+                                            $transferMode = (isset($storage['transfert']) && $storage['transfert'] == 'ASCII') ? FTP_ASCII : FTP_BINARY;
+
+                                            // Set passive mode according to configuration
+                                            if(isset($storage['passive']) && $storage['passive'] == true) {
+                                                ftp_pasv($connectionId, true);
+                                            }
+
+                                            $remoteDir = "/{$site}/{$currentTimestamp}/";
+                                            $this->ftpMksubdirs($connectionId, $remoteDir);
+
+                                            // Dump
+                                            if(isset($dumpName) && isset($dumpPath)) {
+                                                $output->write("   - Start dump move...");//
+                                                if (ftp_put($connectionId, $remoteDir . $dumpName, $dumpPath, $transferMode)) {
+                                                    $output->write("<info> DONE</info>" . PHP_EOL);
+                                                }
+                                            }
+
+                                            // Archive
+                                            if(isset($archiveName) && isset($archivePath)) {
+                                                $output->write("   - Start archive move...");
+                                                if (ftp_put($connectionId, $remoteDir . $archiveName, $archivePath, $transferMode)) {
+                                                    $output->write("<info> DONE</info>" . PHP_EOL);
+                                                }
+                                            }
+                                            /*********************************************
+                                             * Retention
+                                             */
+                                            // Goes back to timestamps folders list
+                                            ftp_chdir($connectionId, '../');
+                                            $timestampDirs = ftp_nlist($connectionId, ".");
+                                            if(count($timestampDirs) > $configuration['retention']) {
+
+                                                sort($timestampDirs);
+                                                $folderNumberToRemove = count($timestampDirs) - $configuration['retention'];
+
+                                                // Prune older directories
+                                                for($i=0;$i<$folderNumberToRemove;$i++) {
+                                                    $this->ftpRecursiveDelete($connectionId, $timestampDirs[$i]);
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            $output->writeln("<error>   - Error : Impossible to login to given FTP server.</error>");
+                                        }
+//
+                                        // Close connexion
+                                        ftp_close($connectionId);
+
+                                        break;
+                                }
+                            }
+
+                            $output->writeln("   - End storage");
+
 
                         }
                         /*********************************************
@@ -158,30 +240,13 @@ class DatabaseBackupCommand extends Command
                     $output->writeln("End sites backup");
 
                     /*********************************************
-                     * Store on external storages
-                     */
-                    foreach($configuration['backup_storages'] as $storage) {
-                        switch($storage['type']) {
-                            case "FTP":
-                                // FTP connection
-//                                $connectionId = ftp_ssl_connect($ftpServer);
-//                                $loginResult = ftp_login($connectionId, $ftpUser, $ftpPassword);
-//
-//                                // Close connexion
-//                                ftp_close($connectionId);
-
-                                break;
-                        }
-                    }
-
-                    /*********************************************
                      * Empty temp paths
                      */
-//                $output->write("Clear temp folders...");
-//                foreach(self::TEMP_PATHS as $tempPath) {
-//                    exec("rm -rf $tempPath/*");
-//                }
-//                $output->write("<info> DONE</info>" . PHP_EOL);
+                    $output->write("Clear temp folders...");
+                    foreach(self::TEMP_PATHS as $tempPath) {
+                        exec("rm -rf $tempPath/*");
+                    }
+                    $output->write("<info> DONE</info>" . PHP_EOL);
                 }
                 else {
                     $output->writeln("<error>Error : no backup storage defined.</error>");
@@ -197,4 +262,33 @@ class DatabaseBackupCommand extends Command
             $output->writeln("<error>Filename is not correct : {$ymlFile}</error>");
         }
     }
+
+    /**
+     * @param $connectionId
+     * @param $ftpPath
+     */
+    private function ftpMksubdirs($connectionId, $ftpPath)
+    {
+        $parts = explode('/', $ftpPath);
+
+        foreach ($parts as $part) {
+            if (!empty($part) && !@ftp_chdir($connectionId, $part)) {
+                ftp_mkdir($connectionId, $part);
+                ftp_chdir($connectionId, $part);
+            }
+        }
+    }
+
+    private function ftpRecursiveDelete($connectionId, $ftpPath) {
+
+        if (@ftp_delete ($connectionId, $ftpPath) === false) {
+            if ($children = @ftp_nlist ($connectionId, $ftpPath)) {
+                foreach ($children as $p)
+                    $this->ftpRecursiveDelete($connectionId, $p);
+            }
+
+            @ftp_rmdir($connectionId, $ftpPath);
+        }
+    }
+
 }
