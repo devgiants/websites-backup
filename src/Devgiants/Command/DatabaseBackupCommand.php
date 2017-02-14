@@ -7,6 +7,8 @@
  */
 namespace Devgiants\Command;
 
+use Devgiants\Protocol\Ftp;
+use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -25,6 +27,21 @@ class DatabaseBackupCommand extends Command
         self::FILES => self::ROOT_TEMP_PATH . "files/"
     ];
     const DEFAULT_RETENTION = 5;
+
+    /**
+     * @var Container $container
+     */
+    private $container;
+
+    /**
+     * DatabaseBackupCommand constructor.
+     * @param Container $container
+     */
+    public function __construct(Container $container)
+    {
+        parent::__construct();
+        $this->container = $container;
+    }
 
     /**
      * @inheritdoc
@@ -146,85 +163,85 @@ class DatabaseBackupCommand extends Command
                             } else {
                                 $output->writeln("<error>   - Error : \"{$siteConfiguration['files']['root_dir']}\" is not a valid directory path. Skip.</error>");
                             }
-
-                            /*********************************************
-                             * Store on external storages
-                             */
-                            $output->writeln("<comment>  - Storage</comment>");
-
-                            foreach($configuration['backup_storages'] as $storage) {
-                                switch($storage['type']) {
-                                    case "FTP":
-                                        // FTP connection (both SSL and clear mode)
-                                        if(isset($storage['ssl']) && $storage['ssl'] == true) {
-                                            $connectionId = ftp_ssl_connect($storage['server']);
-                                        }
-                                        else {
-                                            $connectionId = ftp_connect($storage['server']);
-                                        }
-
-                                        // Try to login
-                                        $loginResult = ftp_login($connectionId, $storage['user'], $storage['password']);
-
-                                        // If login successful
-                                        if($loginResult) {
-                                            $transferMode = (isset($storage['transfert']) && $storage['transfert'] == 'ASCII') ? FTP_ASCII : FTP_BINARY;
-
-                                            // Set passive mode according to configuration
-                                            if(isset($storage['passive']) && $storage['passive'] == true) {
-                                                ftp_pasv($connectionId, true);
-                                            }
-
-                                            $remoteDir = "/{$site}/{$currentTimestamp}/";
-                                            $this->ftpMksubdirs($connectionId, $remoteDir);
-
-                                            // Dump
-                                            if(isset($dumpName) && isset($dumpPath)) {
-                                                $output->write("   - Start dump move...");//
-                                                if (ftp_put($connectionId, $remoteDir . $dumpName, $dumpPath, $transferMode)) {
-                                                    $output->write("<info> DONE</info>" . PHP_EOL);
-                                                }
-                                            }
-
-                                            // Archive
-                                            if(isset($archiveName) && isset($archivePath)) {
-                                                $output->write("   - Start archive move...");
-                                                if (ftp_put($connectionId, $remoteDir . $archiveName, $archivePath, $transferMode)) {
-                                                    $output->write("<info> DONE</info>" . PHP_EOL);
-                                                }
-                                            }
-                                            /*********************************************
-                                             * Retention
-                                             */
-                                            // Goes back to timestamps folders list
-                                            ftp_chdir($connectionId, '../');
-                                            $timestampDirs = ftp_nlist($connectionId, ".");
-                                            if(count($timestampDirs) > $configuration['retention']) {
-
-                                                sort($timestampDirs);
-                                                $folderNumberToRemove = count($timestampDirs) - $configuration['retention'];
-
-                                                // Prune older directories
-                                                for($i=0;$i<$folderNumberToRemove;$i++) {
-                                                    $this->ftpRecursiveDelete($connectionId, $timestampDirs[$i]);
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            $output->writeln("<error>   - Error : Impossible to login to given FTP server.</error>");
-                                        }
-//
-                                        // Close connexion
-                                        ftp_close($connectionId);
-
-                                        break;
-                                }
-                            }
-
-                            $output->writeln("   - End storage");
-
-
                         }
+                        
+                        /*********************************************
+                         * Store on external storages
+                         */
+                        $output->writeln("<comment>  - Storage</comment>");
+
+                        foreach($configuration['backup_storages'] as $storage) {
+                            switch($storage['type']) {
+                                case "FTP":
+
+                                    // Creates manager object
+                                    $ftp = new Ftp(
+                                        $storage['server'],
+                                        $storage['user'],
+                                        $storage['password'],
+                                        (isset($storage['passive']) ? $storage['passive'] : null),
+                                        (isset($storage['ssl']) ? $storage['ssl'] : null),
+                                        (isset($storage['transfer']) ? $storage['transfer'] : FTP_BINARY)
+                                    );
+
+                                    if($ftp->connect()) {
+                                        // TODO TO remove
+                                        $connectionId = $ftp->getConnectionResource();
+                                        $transferMode = (isset($storage['transfer']) && $storage['transfer'] == 'ASCII') ? FTP_ASCII : FTP_BINARY;
+
+
+                                        $remoteDir = "/{$site}/{$currentTimestamp}/";
+
+                                        $ftp->makeDir($remoteDir);
+
+                                        // Dump
+                                        if(isset($dumpName) && isset($dumpPath)) {
+                                            $output->write("   - Start dump move...");//
+                                            if($ftp->put($dumpPath, $remoteDir . $dumpName)) {
+                                                $output->write("<info> DONE</info>" . PHP_EOL);
+                                            }
+                                        }
+
+                                        // Archive
+                                        if(isset($archiveName) && isset($archivePath)) {
+                                            $output->write("   - Start archive move...");
+                                            if($ftp->put($archivePath, $remoteDir . $archiveName)) {
+                                                $output->write("<info> DONE</info>" . PHP_EOL);
+                                            }
+                                        }
+                                        /*********************************************
+                                         * Retention
+                                         */
+                                        // Goes back to timestamps folders list
+                                        ftp_chdir($connectionId, '../');
+                                        $timestampDirs = ftp_nlist($connectionId, ".");
+                                        if(count($timestampDirs) > $configuration['retention']) {
+
+                                            sort($timestampDirs);
+                                            $folderNumberToRemove = count($timestampDirs) - $configuration['retention'];
+
+                                            // Prune older directories
+                                            for($i=0;$i<$folderNumberToRemove;$i++) {
+//                                                $this->ftpRecursiveDelete($connectionId, $timestampDirs[$i]);
+                                                $ftp->delete($timestampDirs[$i]);
+                                            }
+                                        }
+                                    }
+
+                                    else {
+                                        $output->writeln("<error>   - Error : Impossible to login to given FTP server.</error>");
+                                    }
+//
+                                    // Close connexion
+//                                    ftp_close($connectionId);
+                                    $ftp->close();
+
+                                    break;
+                            }
+                        }
+
+                        $output->writeln("   - End storage");
+
                         /*********************************************
                          * Post-save commands
                          */
@@ -262,22 +279,7 @@ class DatabaseBackupCommand extends Command
             $output->writeln("<error>Filename is not correct : {$ymlFile}</error>");
         }
     }
-
-    /**
-     * @param $connectionId
-     * @param $ftpPath
-     */
-    private function ftpMksubdirs($connectionId, $ftpPath)
-    {
-        $parts = explode('/', $ftpPath);
-
-        foreach ($parts as $part) {
-            if (!empty($part) && !@ftp_chdir($connectionId, $part)) {
-                ftp_mkdir($connectionId, $part);
-                ftp_chdir($connectionId, $part);
-            }
-        }
-    }
+    
 
     private function ftpRecursiveDelete($connectionId, $ftpPath) {
 
