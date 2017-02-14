@@ -7,6 +7,7 @@
  */
 namespace Devgiants\Command;
 
+use Devgiants\Model\Protocol;
 use Devgiants\Protocol\Ftp;
 use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
@@ -147,8 +148,6 @@ class DatabaseBackupCommand extends Command
                                         $output->write("   - Copying \"{$fullIncludedItemPath}\"...");
                                         // Normal files
                                         exec("cp -r $fullIncludedItemPath " . $siteTempPath);
-                                        // Hidden files
-//                                    exec("cp -RL $fullIncludedItemPath/.* " . $siteTempPath);
                                         $output->write("<info> DONE</info>" . PHP_EOL);
                                     } else {
                                         $output->writeln("<error>   - Error : \"{$fullIncludedItemPath}\" doesn't exist. Skip.</error>");
@@ -181,7 +180,8 @@ class DatabaseBackupCommand extends Command
                                         $storage['password'],
                                         (isset($storage['passive']) ? $storage['passive'] : null),
                                         (isset($storage['ssl']) ? $storage['ssl'] : null),
-                                        (isset($storage['transfer']) ? $storage['transfer'] : FTP_BINARY)
+                                        (isset($storage['transfer']) ? $storage['transfer'] : FTP_BINARY),
+                                        (isset($configuration['remanence']) ? $configuration['remanence'] : Protocol::REMANENCE)
                                     );
 
                                     if($ftp->connect()) {
@@ -190,7 +190,7 @@ class DatabaseBackupCommand extends Command
                                         $transferMode = (isset($storage['transfer']) && $storage['transfer'] == 'ASCII') ? FTP_ASCII : FTP_BINARY;
 
 
-                                        $remoteDir = "/{$site}/{$currentTimestamp}/";
+                                        $remoteDir = "{$storage['root_dir']}/{$site}/{$currentTimestamp}/";
 
                                         $ftp->makeDir($remoteDir);
 
@@ -212,28 +212,13 @@ class DatabaseBackupCommand extends Command
                                         /*********************************************
                                          * Retention
                                          */
-                                        // Goes back to timestamps folders list
-                                        ftp_chdir($connectionId, '../');
-                                        $timestampDirs = ftp_nlist($connectionId, ".");
-                                        if(count($timestampDirs) > $configuration['retention']) {
-
-                                            sort($timestampDirs);
-                                            $folderNumberToRemove = count($timestampDirs) - $configuration['retention'];
-
-                                            // Prune older directories
-                                            for($i=0;$i<$folderNumberToRemove;$i++) {
-//                                                $this->ftpRecursiveDelete($connectionId, $timestampDirs[$i]);
-                                                $ftp->delete($timestampDirs[$i]);
-                                            }
-                                        }
+                                        $ftp->handleRetention();
                                     }
 
                                     else {
                                         $output->writeln("<error>   - Error : Impossible to login to given FTP server.</error>");
                                     }
-//
-                                    // Close connexion
-//                                    ftp_close($connectionId);
+
                                     $ftp->close();
 
                                     break;
@@ -279,18 +264,4 @@ class DatabaseBackupCommand extends Command
             $output->writeln("<error>Filename is not correct : {$ymlFile}</error>");
         }
     }
-    
-
-    private function ftpRecursiveDelete($connectionId, $ftpPath) {
-
-        if (@ftp_delete ($connectionId, $ftpPath) === false) {
-            if ($children = @ftp_nlist ($connectionId, $ftpPath)) {
-                foreach ($children as $p)
-                    $this->ftpRecursiveDelete($connectionId, $p);
-            }
-
-            @ftp_rmdir($connectionId, $ftpPath);
-        }
-    }
-
 }

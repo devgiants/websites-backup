@@ -44,6 +44,11 @@ class Ftp implements Protocol
     protected $transferMode;
 
     /**
+     * @var int $remanence
+     */
+    protected $remanence;
+
+    /**
      * FtpManager constructor.
      * @param string $server
      * @param string $username
@@ -51,14 +56,16 @@ class Ftp implements Protocol
      * @param bool $passive
      * @param bool $ssl
      * @param int $transferMode
+     * @param int $remanence
      */
-    public function __construct($server, $username, $password, $passive = true, $ssl = false, $transferMode = FTP_BINARY) {
+    public function __construct($server, $username, $password, $passive = true, $ssl = false, $transferMode = FTP_BINARY, $remanence = self::REMANENCE) {
         $this->server = $server;
         $this->username = $username;
         $this->password = $password;
         $this->passive = $passive;
         $this->ssl = $ssl;
         $this->transferMode = $transferMode;
+        $this->remanence = $remanence;
     }
 
     /**
@@ -171,6 +178,24 @@ class Ftp implements Protocol
                 // TODO find how to correctly specify folder to not trigger warning
                 @ftp_mkdir($this->connectionResource, $part);
                 ftp_chdir($this->connectionResource, $part);
+            }
+        }
+    }
+
+    public function handleRetention()
+    {
+        // TODO find best way for configurable architecture
+        // Goes back to timestamps folders list
+        ftp_chdir($this->connectionResource, '../');
+        $timestampDirs = ftp_nlist($this->connectionResource, ".");
+        if(count($timestampDirs) > $this->remanence) {
+
+            sort($timestampDirs);
+            $folderNumberToRemove = count($timestampDirs) - $this->remanence;
+
+            // Prune older directories
+            for($i=0;$i<$folderNumberToRemove;$i++) {
+                $this->delete($timestampDirs[$i]);
             }
         }
     }

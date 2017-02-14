@@ -11,6 +11,7 @@ namespace Devgiants\Model;
 
 interface Protocol
 {
+    const REMANENCE = 5;
     /**
      * @return bool
      */
@@ -39,5 +40,13 @@ interface Protocol
      */
     public function makeDir($path, $recursive = true);
 
+    /**
+     * @return mixed
+     */
+    public function handleRetention();
+
+    /**
+     * @return mixed
+     */
     public function close();
 }
