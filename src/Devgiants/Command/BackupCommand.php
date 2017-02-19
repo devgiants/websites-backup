@@ -7,9 +7,9 @@
  */
 namespace Devgiants\Command;
 
+use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Model\Protocol;
 use Devgiants\Protocol\Ftp;
-use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
-class DatabaseBackupCommand extends Command
+class BackupCommand extends Command
 {
     const FILE_OPTION = "file";
     const ROOT_TEMP_PATH = "/tmp/website-backups/";
@@ -29,20 +29,6 @@ class DatabaseBackupCommand extends Command
     ];
     const DEFAULT_RETENTION = 5;
 
-    /**
-     * @var Container $container
-     */
-    private $container;
-
-    /**
-     * DatabaseBackupCommand constructor.
-     * @param Container $container
-     */
-    public function __construct(Container $container)
-    {
-        parent::__construct();
-        $this->container = $container;
-    }
 
     /**
      * @inheritdoc
@@ -53,7 +39,7 @@ class DatabaseBackupCommand extends Command
             ->setName('save')
             ->setDescription('Backup sites accordingly to the parameters provided or YML configuration file')
             ->setHelp("This command allows you to save sites")
-            ->addOption(self::FILE_OPTION, "f", InputOption::VALUE_OPTIONAL, "The YML configuration file")
+            ->addOption(self::FILE_OPTION, "f", InputOption::VALUE_REQUIRED, "The YML configuration file")
         ;
     }
 
@@ -67,9 +53,15 @@ class DatabaseBackupCommand extends Command
 
         if($ymlFile !== null && is_file($ymlFile)) {
             try {
-                $configuration = Yaml::parse(file_get_contents($ymlFile));
-                // TODO add structure check
+//                $configuration = Yaml::parse(file_get_contents($ymlFile));
+//                // TODO add structure check
+                
+                $configurationManager = new ConfigurationManager($ymlFile);
 
+                $configuration = $configurationManager->load();
+
+
+                die('Passed');
                 if(isset($configuration['backup_storages'])) {
 
                     /*********************************************
@@ -185,10 +177,6 @@ class DatabaseBackupCommand extends Command
                                     );
 
                                     if($ftp->connect()) {
-                                        // TODO TO remove
-                                        $connectionId = $ftp->getConnectionResource();
-                                        $transferMode = (isset($storage['transfer']) && $storage['transfer'] == 'ASCII') ? FTP_ASCII : FTP_BINARY;
-
 
                                         $remoteDir = "{$storage['root_dir']}/{$site}/{$currentTimestamp}/";
 
