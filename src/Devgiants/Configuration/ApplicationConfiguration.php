@@ -45,6 +45,15 @@ class ApplicationConfiguration implements ConfigurationInterface
     const FOLDERS_TO_INCLUDE = 'include';
     const FOLDERS_TO_EXCLUDE = 'exclude';
 
+    const FTP = 'FTP';
+    const SSH = 'SSH';
+    const AUTHORIZED_STORAGE = [
+        self::FTP,
+        self::SSH
+    ];
+
+    const STORAGE_TYPE = 'type';
+
 
     public function getConfigTreeBuilder()
     {
@@ -106,14 +115,19 @@ class ApplicationConfiguration implements ConfigurationInterface
                                 ->requiresAtLeastOneElement()
                                 ->prototype('scalar')->end()
                             ->end()
+                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode(self::BACKUP_STORAGES)
                     ->isRequired()
-//                    ->requiresAtLeastOneElement()
-//                    ->prototype('array')
-                    ->children()
-//                        ->arrayNode(self::PRE_SAVE_COMMANDS)
+                    ->requiresAtLeastOneElement()
+                    ->prototype('array')
+                        ->children()
+                            ->enumNode(self::STORAGE_TYPE)
+                                ->info('Contains the MySQL database server IP or domain name. default is localhost')
+                                ->values(self::AUTHORIZED_STORAGE)
+                            ->end()
+                        ->end()
                 ->end()
         ;
 
