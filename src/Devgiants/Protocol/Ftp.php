@@ -9,9 +9,12 @@
 namespace Devgiants\Protocol;
 
 
-use Devgiants\Model\Protocol;
+use Devgiants\Configuration\ApplicationConfiguration;
+use Devgiants\Configuration\ConfigurationManager;
+use Devgiants\Model\ProtocolInterface;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
-class Ftp implements Protocol
+class Ftp implements ProtocolInterface
 {
     /**
      * @var resource the FTP connection resource
@@ -44,28 +47,17 @@ class Ftp implements Protocol
     protected $transferMode;
 
     /**
-     * @var int $remanence
-     */
-    protected $remanence;
-
-    /**
      * FtpManager constructor.
-     * @param string $server
-     * @param string $username
-     * @param string $password
-     * @param bool $passive
-     * @param bool $ssl
-     * @param int $transferMode
-     * @param int $remanence
+     * @param array $options
      */
-    public function __construct($server, $username, $password, $passive = true, $ssl = false, $transferMode = FTP_BINARY, $remanence = self::REMANENCE) {
-        $this->server = $server;
-        $this->username = $username;
-        $this->password = $password;
-        $this->passive = $passive;
-        $this->ssl = $ssl;
-        $this->transferMode = $transferMode;
-        $this->remanence = $remanence;
+    public function __construct($options) {
+//        $server, $username, $password, $passive = true, $ssl = false, $transferMode = FTP_BINARY, $remanence = self::REMANENCE
+        $this->server = $options[ApplicationConfiguration::SERVER];
+        $this->username = $options[ApplicationConfiguration::USER];
+        $this->password = $options[ApplicationConfiguration::PASSWORD];
+        $this->passive = $options[ApplicationConfiguration::PASSIVE];
+        $this->ssl = $options[ApplicationConfiguration::SSL];
+        $this->transferMode = $options[ApplicationConfiguration::TRANSFER];
     }
 
     /**
@@ -118,7 +110,7 @@ class Ftp implements Protocol
 
     /**
      * Establish FTP connection
-     * @return bool
+     * @throws Exception
      */
     public function connect() {
 
@@ -128,6 +120,10 @@ class Ftp implements Protocol
         }
         else {
             $this->connectionResource = ftp_connect($this->server);
+        }
+
+        if(!$this->connectionResource) {
+            throw new Exception("Impossible to establish connection on FTP server {$this->server} with username {$this->username} (SSL = {$this->ssl})");
         }
 
         // Try to login
@@ -140,7 +136,9 @@ class Ftp implements Protocol
                 ftp_pasv($this->connectionResource, true);
             }
         }
-        return $loginResult;
+        if(!$loginResult) {
+            throw new Exception("Impossible to authenticate on FTP server {$this->server} with username {$this->username} (SSL = {$this->ssl})");
+        }
     }
 
     public function put($localPath, $remotePath) {
@@ -182,16 +180,19 @@ class Ftp implements Protocol
         }
     }
 
-    public function handleRetention()
+    /**
+     * @inheritdoc
+     */
+    public function handleRetention(int $retention)
     {
         // TODO find best way for configurable architecture
         // Goes back to timestamps folders list
         ftp_chdir($this->connectionResource, '../');
         $timestampDirs = ftp_nlist($this->connectionResource, ".");
-        if(count($timestampDirs) > $this->remanence) {
+        if(count($timestampDirs) > $retention) {
 
             sort($timestampDirs);
-            $folderNumberToRemove = count($timestampDirs) - $this->remanence;
+            $folderNumberToRemove = count($timestampDirs) - $retention;
 
             // Prune older directories
             for($i=0;$i<$folderNumberToRemove;$i++) {
@@ -202,5 +203,9 @@ class Ftp implements Protocol
 
     public function close() {
         ftp_close($this->connectionResource);
+    }
+
+    public static function getType() {
+        return 'FTP';
     }
 }

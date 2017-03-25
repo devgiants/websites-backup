@@ -6,7 +6,8 @@
         "symfony/console": "^3.2",
         "herrera-io/phar-update": "~1.0",
         "symfony/yaml": "^3.2",
-        "symfony/config": "^3.2"
+        "symfony/config": "^3.2",
+        "hanneskod/classtools": "~1.0"
     },
     "autoload": {
         "psr-4": {

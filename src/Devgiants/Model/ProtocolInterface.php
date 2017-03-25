@@ -9,11 +9,13 @@
 namespace Devgiants\Model;
 
 
-interface Protocol
+use Symfony\Component\Config\Definition\Exception\Exception;
+
+interface ProtocolInterface
 {
     const REMANENCE = 5;
     /**
-     * @return bool
+     * @throws Exception
      */
     public function connect();
 
@@ -41,12 +43,18 @@ interface Protocol
     public function makeDir($path, $recursive = true);
 
     /**
+     * @param int $retention
      * @return mixed
      */
-    public function handleRetention();
+    public function handleRetention(int $retention);
 
     /**
      * @return mixed
      */
     public function close();
+
+    /**
+     * @return string the protocol type
+     */
+    public static function getType();
 }

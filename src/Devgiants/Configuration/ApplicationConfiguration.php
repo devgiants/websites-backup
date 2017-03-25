@@ -30,14 +30,17 @@ class ApplicationConfiguration implements ConfigurationInterface
     const POST_SAVE_COMMANDS = 'post_save_commands';
 
     const DATABASE = 'database';
+    const NAME = 'name';
 
+    const SERVER = 'server';
+    const USER = 'user';
+    const PASSWORD = "password";
+    
     const DATABASE_SERVER = [
-        self::NODE_NAME => 'server',
+        self::NODE_NAME => self::SERVER,
         self::NODE_DEFAULT_VALUE => 'localhost'
     ];
-
-    const DATABASE_USER = 'user';
-    const DATABASE_PASSWORD = "password";
+    
 
     const FILES = 'files';
 
@@ -54,78 +57,121 @@ class ApplicationConfiguration implements ConfigurationInterface
 
     const STORAGE_TYPE = 'type';
 
+    /* FTP specific */
+    const SSL = 'ssl';
+    const PASSIVE = 'passive';
+    const TRANSFER = 'transfer';
+
 
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root(self::ROOT_NODE);
+        $rootNode = $treeBuilder->root(static::ROOT_NODE);
         
         // add node definitions to the root of the tree
         $rootNode
             ->children()
-                ->scalarNode(self::REMANENCE_NODE[self::NODE_NAME])
-                    ->defaultValue(self::REMANENCE_NODE[self::NODE_DEFAULT_VALUE])
+                ->scalarNode(static::REMANENCE_NODE[static::NODE_NAME])
+                    ->defaultValue(static::REMANENCE_NODE[static::NODE_DEFAULT_VALUE])
                     ->info('Contains the backup folders max value to keep on defined storages')
                 ->end()
-                ->arrayNode(self::SITES)
+                ->arrayNode(static::SITES)
                     ->isRequired()
                     ->requiresAtLeastOneElement()
                     ->prototype('array')
                         ->children()
-                            ->arrayNode(self::PRE_SAVE_COMMANDS)
+                            ->arrayNode(static::PRE_SAVE_COMMANDS)
                                 ->requiresAtLeastOneElement()
                                 ->prototype('scalar')->end()
                             ->end()
-                            ->arrayNode(self::DATABASE)
+                            ->arrayNode(static::DATABASE)
                                 ->children()
-                                    ->scalarNode(self::DATABASE_SERVER[self::NODE_NAME])
-                                        ->defaultValue(self::DATABASE_SERVER[self::NODE_DEFAULT_VALUE])
+                                    ->scalarNode(static::DATABASE_SERVER[static::NODE_NAME])
+                                        ->defaultValue(static::DATABASE_SERVER[static::NODE_DEFAULT_VALUE])
                                         ->info('Contains the MySQL database server IP or domain name. default is localhost')
                                     ->end()
-                                    ->scalarNode(self::DATABASE_USER)
+                                    ->scalarNode(static::USER)
                                         ->info('Contains the MySQL user to connect to database with')
                                         ->isRequired()
                                         ->cannotBeEmpty()
                                     ->end()
-                                    ->scalarNode(self::DATABASE_PASSWORD)
+                                    ->scalarNode(static::PASSWORD)
                                         ->info('Contains password for MySQL user')
                                         ->isRequired()
                                         ->cannotBeEmpty()
                                     ->end()
+                                    ->scalarNode(static::NAME)
+                                        ->info('Contains database name')
+                                        ->isRequired()
+                                        ->cannotBeEmpty()
+                                    ->end()
                                 ->end()
                             ->end()
-                            ->arrayNode(self::FILES)
+                            ->arrayNode(static::FILES)
                                 ->children()
-                                    ->scalarNode(self::ROOT_DIR)
+                                    ->scalarNode(static::ROOT_DIR)
                                         ->info('Contains the root directory for backup')
                                         ->isRequired()
                                         ->cannotBeEmpty()
                                     ->end()
-                                    ->arrayNode(self::FOLDERS_TO_INCLUDE)
+                                    ->arrayNode(static::FOLDERS_TO_INCLUDE)
                                         ->requiresAtLeastOneElement()
                                         ->prototype('scalar')->end()
                                     ->end()
-                                    ->arrayNode(self::FOLDERS_TO_EXCLUDE)
+                                    ->arrayNode(static::FOLDERS_TO_EXCLUDE)
                                         ->requiresAtLeastOneElement()
                                         ->prototype('scalar')->end()
                                     ->end()
                                 ->end()
                             ->end()
-                            ->arrayNode(self::POST_SAVE_COMMANDS)
+                            ->arrayNode(static::POST_SAVE_COMMANDS)
                                 ->requiresAtLeastOneElement()
                                 ->prototype('scalar')->end()
                             ->end()
                         ->end()
                     ->end()
                 ->end()
-                ->arrayNode(self::BACKUP_STORAGES)
+                ->arrayNode(static::BACKUP_STORAGES)
                     ->isRequired()
                     ->requiresAtLeastOneElement()
                     ->prototype('array')
                         ->children()
-                            ->enumNode(self::STORAGE_TYPE)
-                                ->info('Contains the MySQL database server IP or domain name. default is localhost')
-                                ->values(self::AUTHORIZED_STORAGE)
+                            // TODO add checks if true to contextualize options with storage type
+                            ->enumNode(static::STORAGE_TYPE)
+                                ->info('Contains the storage type for backup')
+                                ->values(static::AUTHORIZED_STORAGE)
+                            ->end()
+                            ->booleanNode(static::SSL)
+                                ->info('For FTP connections, decides if connection is STP or regular FTP. Default regular.')
+                                ->defaultFalse()
+                            ->end()
+                            ->booleanNode(static::PASSIVE)
+                                ->info('For FTP connections, decides if transfer mode is passive or not. Default passive')
+                                ->defaultTrue()
+                            ->end()
+                            ->integerNode(static::TRANSFER)
+                                ->info('For FTP connections, decides transfer type. Default FTP_BINARY')
+                                ->defaultValue(FTP_BINARY)
+                            ->end()
+                            ->scalarNode(static::SERVER)
+                                ->info('Contains the server to connect with')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode(static::USER)
+                                ->info('Contains the user to connect server with')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode(static::PASSWORD)
+                                ->info('Contains the password to connect server with')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode(static::ROOT_DIR)
+                                ->info('Contains the root dir on remote server to start with')
+                                ->isRequired()
+                                ->cannotBeEmpty()
                             ->end()
                         ->end()
                 ->end()
