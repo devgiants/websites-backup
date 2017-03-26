@@ -192,7 +192,7 @@ class BackupCommand extends Command
 
                         // TODO find a way to group with other check in L176
                         if(!$currentProtocol instanceof ProtocolInterface) {
-                            throw new Exception("All protocols must implements ProtocolInterface : $classname is not.");
+                            throw new Exception("All protocols must implements ProtocolInterface : {$availableProtocols[$storage[ApplicationConfiguration::STORAGE_TYPE]]} is not.");
                         }
                         
                         // Connection
@@ -209,31 +209,22 @@ class BackupCommand extends Command
                             if($currentProtocol->put($dumpPath, $remoteDir . $dumpName)) {
                                 $output->write("<info> DONE</info>" . PHP_EOL);
                             }
+                            // TODO handle else
+                        }
+                        
+                        // Archive
+                        if(isset($archiveName) && isset($archivePath)) {
+                            $output->write("   - Start archive move...");
+                            if($currentProtocol->put($archivePath, $remoteDir . $archiveName)) {
+                                $output->write("<info> DONE</info>" . PHP_EOL);
+                            }
+                            // TODO handle else
                         }
 
-                        die();
-//
-//                                    // Archive
-//                                    if(isset($archiveName) && isset($archivePath)) {
-//                                        $output->write("   - Start archive move...");
-//                                        if($ftp->put($archivePath, $remoteDir . $archiveName)) {
-//                                            $output->write("<info> DONE</info>" . PHP_EOL);
-//                                        }
-//                                    }
-//                                    /*********************************************
-//                                     * Retention
-//                                     */
-//                                    $ftp->handleRetention();
-//                                }
-//
-//                                else {
-//                                    $output->writeln("<error>   - Error : Impossible to login to given FTP server.</error>");
-//                                }
-//
-//                                $ftp->close();
-//
-//                                break;
-//                        }
+                        /*********************************************
+                         * Retention
+                         */
+                        $currentProtocol->handleRetention($configuration[ApplicationConfiguration::REMANENCE_NODE[ApplicationConfiguration::NODE_NAME]]);
                     }
 
                     $output->writeln("   - End storage");
