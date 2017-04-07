@@ -11,13 +11,17 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use Devgiants\Command;
+use Pimple\Container;
+use Devgiants\Service\BackupTools;
 
 $application = new Application('backup', '@package_version@');
 
-//$container = new Container();
+$container = new Container();
+
+$container['tools'] = new BackupTools();
 
 // Register commands
-$application->add(new Command\BackupCommand());
-$application->add(new Command\RetrieveBackupCommand());
+$application->add(new Command\BackupCommand('backup', $container));
+$application->add(new Command\RetrieveBackupCommand('retrieve', $container));
 
 $application->run();

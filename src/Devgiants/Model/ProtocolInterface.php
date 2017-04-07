@@ -25,8 +25,19 @@ interface ProtocolInterface
      * @return bool
      */
     public function put($localPath, $remotePath);
-    
-    public function get();
+
+    /**
+     * @param $remotePath
+     * @return array
+     */
+    public function getItemsList($remotePath);
+
+    /**
+     * @param string $remotePath
+     * @param string $localPath
+     * @return bool
+     */
+    public function get($remotePath, $localPath);
 
     /**
      * @param $path

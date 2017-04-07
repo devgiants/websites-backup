@@ -11,16 +11,13 @@ use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration;
 use Devgiants\Model\Protocol;
 use Devgiants\Model\ProtocolInterface;
-use Devgiants\Protocol\Ftp;
-use hanneskod\classtools\Iterator\ClassIterator;
+use Pimple\Container;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class BackupCommand extends Command
 {
@@ -32,6 +29,16 @@ class BackupCommand extends Command
         self::FILES => self::ROOT_TEMP_PATH . "files/"
     ];
 
+    /**
+     * @var Container
+     */
+    private $container;
+
+    public function __construct($name, Container $container)
+    {
+        $this->container = $container;
+        parent::__construct($name);
+    }
 
     /**
      * @inheritdoc
@@ -165,35 +172,11 @@ class BackupCommand extends Command
                      */
                     $output->writeln("<comment>  - Storage</comment>");
 
-                    // Gather all available protocols
-                    $finder = new Finder();
-                    $iterator = new ClassIterator($finder->in(__DIR__ . "/../Protocol"));
+                    
 
-                    $availableProtocols = [];
+                    foreach($configuration[ApplicationConfiguration::BACKUP_STORAGES] as $storage) {
 
-                    foreach ($iterator->getClassMap() as $classname => $splFileInfo) {
-                        // Check all protocols implements ProtocolInterface
-                        if(!in_array(ProtocolInterface::class, class_implements($classname))) {
-                            throw new Exception("All protocols must implements ProtocolInterface : $classname is not.");
-                        }
-                        $availableProtocols[call_user_func("$classname::getType")] = $classname;
-                    }
-
-                    foreach($configuration['backup_storages'] as $storage) {
-                        // use the required protocol, and raise exception if inexistant
-                        if(!isset($availableProtocols[$storage[ApplicationConfiguration::STORAGE_TYPE]])) {
-                            throw new Exception("Protocol \"{$storage[ApplicationConfiguration::STORAGE_TYPE]}\" unavailable");
-                        }
-
-                        /**
-                         * @var ProtocolInterface
-                         */
-                        $currentProtocol = new $availableProtocols[$storage[ApplicationConfiguration::STORAGE_TYPE]]($storage);
-
-                        // TODO find a way to group with other check in L176
-                        if(!$currentProtocol instanceof ProtocolInterface) {
-                            throw new Exception("All protocols must implements ProtocolInterface : {$availableProtocols[$storage[ApplicationConfiguration::STORAGE_TYPE]]} is not.");
-                        }
+                        $currentProtocol = $this->container['tools']->getProtocolByType($storage);
                         
                         // Connection
                         $output->write("   - Trying connection...");
@@ -211,7 +194,7 @@ class BackupCommand extends Command
                             }
                             // TODO handle else
                         }
-                        
+
                         // Archive
                         if(isset($archiveName) && isset($archivePath)) {
                             $output->write("   - Start archive move...");

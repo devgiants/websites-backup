@@ -141,12 +141,26 @@ class Ftp implements ProtocolInterface
         }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function put($localPath, $remotePath) {
         return ftp_put($this->connectionResource, $remotePath, $localPath, $this->transferMode);
     }
 
-    public function get() {
-        // TODO : implements get
+    /**
+     * @inheritdoc
+     */
+    public function getItemsList($remotePath)
+    {
+        return ftp_nlist($this->connectionResource, $remotePath);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get($remotePath, $localPath) {
+        return ftp_get($this->connectionResource, $localPath, $remotePath, FTP_BINARY);
     }
 
     /**
