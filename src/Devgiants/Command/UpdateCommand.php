@@ -17,7 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class UpdateCommand extends Command
 {
-    const MANIFEST_FILE = 'http://devgiants.github.io/website-backup/manifest.json';
+    const ROOT_URL = "https://devgiants.github.io/website-backup/";
+    const MANIFEST_FILE_URL = self::ROOT_URL . 'manifest.json';
+    const DOWNLOAD_FOLDER = self::ROOT_URL . 'downloads';
 
     /**
      * @inheritdoc
@@ -35,7 +37,7 @@ class UpdateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $manager = new Manager(Manifest::loadFile(self::MANIFEST_FILE));
+        $manager = new Manager(Manifest::loadFile(self::MANIFEST_FILE_URL));
         $manager->update($this->getApplication()->getVersion(), true);
     }
 }
