@@ -7,8 +7,6 @@
  * Time: 14:29
  */
 
-define('VERSION_CHECKER_URL', 'https://devgiants.github.io/website-backup/get-last-version.php');
-
 require __DIR__ . '/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;

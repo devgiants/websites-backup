@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class UpdateCommand extends Command
 {
-    const ROOT_URL = "https://devgiants.github.io/website-backup/";
+    const ROOT_URL = "https://devgiants.github.io/websites-backup/";
     const MANIFEST_FILE_URL = self::ROOT_URL . 'manifest.json';
     const DOWNLOAD_FOLDER = self::ROOT_URL . 'downloads';
 
