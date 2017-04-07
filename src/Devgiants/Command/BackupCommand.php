@@ -9,10 +9,7 @@ namespace Devgiants\Command;
 
 use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration;
-use Devgiants\Model\Protocol;
-use Devgiants\Model\ProtocolInterface;
 use Pimple\Container;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
