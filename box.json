@@ -1,5 +1,9 @@
 {
   "directories": ["src"],
+  "files": [
+    "LICENSE",
+    "README.md"
+  ],
   "finder": [
     {
       "name": "*.php",
