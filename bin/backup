@@ -23,5 +23,6 @@ $container['tools'] = new BackupTools();
 // Register commands
 $application->add(new Command\BackupCommand('backup', $container));
 $application->add(new Command\RetrieveBackupCommand('retrieve', $container));
+$application->add(new Command\UpdateCommand('self-update'));
 
 $application->run();
