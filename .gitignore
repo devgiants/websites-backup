@@ -1,3 +1,14 @@
 .idea
 vendor
 box
+/composer.json
+/LICENSE
+/bin/
+/vendor/
+/src/
+/.gitignore
+/box
+/README.md
+/website-backup.phar
+/box.json
+/composer.lock
