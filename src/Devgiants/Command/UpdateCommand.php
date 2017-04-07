@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class UpdateCommand extends Command
 {
-    const MANIFEST_FILE = 'http://devgiants.github.io/website-backup/manifest.json';
+    const MANIFEST_FILE = 'https://devgiants.github.io/websites-backup/manifest.json';
 
     /**
      * @inheritdoc
