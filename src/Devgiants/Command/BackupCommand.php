@@ -43,7 +43,7 @@ class BackupCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('backup')
+            ->setName('save')
             ->setDescription('Backup sites accordingly to the YML configuration file provided')
             ->setHelp("This command allows you to save sites, maily by saving databases and files you chose")
             ->addOption(self::FILE_OPTION, "f", InputOption::VALUE_REQUIRED, "The YML configuration file")
