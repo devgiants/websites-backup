@@ -1,4 +1,4 @@
-# Websites Backup
+# Websites Backup 1.0.86
 ## Presentation
 Allow to backup sites (databases + files) easily using a YML configuration file.
 
