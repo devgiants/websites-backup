@@ -41,7 +41,7 @@ class RetrieveBackupCommand extends Command
     {
         $this
             ->setName('retrieve')
-            ->setDescription('Retrieve sites backup accordingly to the parameters provided or YML configuration file and storage key chosen in backup configuration')
+            ->setDescription('Retrieve sites backup accordingly to the YML configuration file and storage key chosen in backup configuration')
             ->setHelp("This command allows you to retrieve sites backup")
             ->addOption(BackupCommand::FILE_OPTION, "f", InputOption::VALUE_REQUIRED, "The YML configuration file")
             ->addOption(self::STORAGE_OPTION, "s", InputOption::VALUE_OPTIONAL, "The storage key in configuration file to retrieve backups from")
