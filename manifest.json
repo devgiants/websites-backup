@@ -1,6 +1,8 @@
-{
-  "name": "website-backup.phar",
-  "sha1": "7d22e6bc22c27897bb0a66b4acfb340b5fcc2561",
-  "url": "https://devgiants.github.io/websites-backup/downloads/website-backup-1.0.7.phar",
-  "version": "1.0.7"
-}
+[
+  {
+    "name": "website-backup.phar",
+    "sha1": "7d22e6bc22c27897bb0a66b4acfb340b5fcc2561",
+    "url": "https://devgiants.github.io/websites-backup/downloads/website-backup-1.0.7.phar",
+    "version": "1.0.7"
+  }
+]
