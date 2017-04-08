@@ -37,7 +37,12 @@ class UpdateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $previousVersion = $this->getApplication()->getVersion();
         $manager = new Manager(Manifest::loadFile(self::MANIFEST_FILE_URL));
-        $manager->update($this->getApplication()->getVersion(), true);
+        if($manager->update($this->getApplication()->getVersion(), true)) {
+            $output->writeln("<fg=black;bg=green>Application was successfully updated from {$previousVersion} to {$this->getApplication()->getVersion()}</>");
+        } else {
+            $output->writeln("<fg=black;bg=green>Application is up-to-date ({$previousVersion})</>");
+        }
     }
 }
