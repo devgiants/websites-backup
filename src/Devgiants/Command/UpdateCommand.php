@@ -11,6 +11,7 @@ namespace Devgiants\Command;
 
 use Herrera\Phar\Update\Manager;
 use Herrera\Phar\Update\Manifest;
+use KevinGH\Version\Version;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -40,7 +41,7 @@ class UpdateCommand extends Command
         $previousVersion = $this->getApplication()->getVersion();
         $manager = new Manager(Manifest::loadFile(self::MANIFEST_FILE_URL));
         if($manager->update($this->getApplication()->getVersion(), true)) {
-            $output->writeln("<fg=black;bg=green>Application was successfully updated from {$previousVersion} to {$this->getApplication()->getVersion()}</>");
+            $output->writeln("<fg=black;bg=green>Application was successfully updated from {$previousVersion} to {$manager->getManifest()->findRecent(Version::create($previousVersion))}</>");
         } else {
             $output->writeln("<fg=black;bg=green>Application is up-to-date ({$previousVersion})</>");
         }
