@@ -68,6 +68,9 @@ configuration:
       password: "password"
       # Remote root dir
       root_dir: "/sites"
+
+    ftp2:
+      ....
 ```
 
 ### Retrieve
@@ -82,3 +85,7 @@ The command will ask you :
 3. Backup timestamp (among the availables ones)
 
 Then it will put the files (basically tar + sql files) in /tmp folder.
+
+The application is modular, each storage is created a Devgiants/Protocol/Protocol class instance.
+
+More to come : SSH Protocol, Local filesystem Protocol, tests...
