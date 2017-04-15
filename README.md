@@ -41,13 +41,14 @@ configuration:
         name: database_name
       files:
         # root dir to refer to
-        root_dir: "/var/www/html/claudette/"
-        # Folder list to include
+        root_dir: "/var/www/html/my-site/"
+        # Folder list to include (root dir based)
         include:
           - "my-folder/to-include"
-        # Folder list to exclude
+        # Files/Folder list to exclude (root dir based)
         exclude:
           - "my-folder/to-exclude"
+          - "my-folder2/my-specific-file.file"
       post_save_commands:
         - "mkdir /tmp/post_test_command"
 

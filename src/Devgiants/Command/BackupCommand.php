@@ -11,9 +11,13 @@ use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration;
 use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 class BackupCommand extends Command
@@ -133,7 +137,7 @@ class BackupCommand extends Command
                     if (isset($siteConfiguration['files'])) {
                         $output->writeln("<comment>  - Files</comment>");
                         if (is_dir($siteConfiguration['files']['root_dir'])) {
-                            // Build and create temp site path. REmove it besfore if needed to be sure it's empty
+                            // Build and create temp site path. Remove it before if needed to be sure it's empty
                             $siteTempPath = self::TEMP_PATHS[self::FILES] . $site;
                             if(file_exists($siteTempPath)) {
                                 // TODO find better
@@ -141,21 +145,53 @@ class BackupCommand extends Command
                             }
                             mkdir($siteTempPath);
 
-                            // Copy all included folders recursively to temp path
-                            foreach ($siteConfiguration['files']['include'] as $includedItem) {
-                                // Build target path to copy
-                                $fullIncludedItemPath = "{$siteConfiguration['files']['root_dir']}{$includedItem}";
+                            $finder = new Finder();
+                            $fs = new Filesystem();
 
-                                if (file_exists($fullIncludedItemPath)) {
-                                    $output->write("   - Copying \"{$fullIncludedItemPath}\"...");
-                                    // Normal files
-                                    exec("cp -r $fullIncludedItemPath " . $siteTempPath);
-                                    $output->write("<info> DONE</info>" . PHP_EOL);
-                                } else {
-                                    $output->writeln("<error>   - Error : \"{$fullIncludedItemPath}\" doesn't exist. Skip.</error>");
+                            $excludedFiles = [];
+                            foreach($siteConfiguration['files']['exclude'] as $relativeExcludedItem) {
+                                $absoluteExcludedItem = "{$siteConfiguration['files']['root_dir']}{$relativeExcludedItem}";
+
+                                // File case : directly add to exclude list
+                                if(is_file($absoluteExcludedItem)) {
+                                    $excludedFiles[] = $absoluteExcludedItem;
+                                }
+                                else {
+                                    foreach($finder->files()->followLinks()->in($absoluteExcludedItem)->getIterator() as $excludedFile) {
+                                        $excludedFiles[] = $excludedFile->getRealPath();
+                                    }
                                 }
                             }
-                            // TODO Remove all excluded files/folders
+
+
+                            // Copy all included folders recursively to temp path
+                            foreach ($siteConfiguration['files']['include'] as $includedItem) {
+                                $output->writeln("    - Start handling included {$siteConfiguration['files']['root_dir']}{$includedItem}");
+
+                                $includedFiles = $finder
+                                                    ->files()
+                                                    ->followLinks()
+                                                    ->in("{$siteConfiguration['files']['root_dir']}{$includedItem}")
+                                ;
+                                $output->writeln("      - ". count($includedFiles) . " files to copy");
+
+                                $filesProgressBar = new ProgressBar($output, count($includedFiles));
+                                $filesProgressBar->setFormat("very_verbose");
+                                $filesProgressBar->start();
+
+                                foreach ($includedFiles as $file) {
+                                    if(!in_array($file->getRealPath(), $excludedFiles)) {
+                                        $relativeFilePath = substr($file->getRealPath(), strlen($siteConfiguration['files']['root_dir']), strlen($file->getRealPath()));
+                                        $fs->copy($file->getRealPath(), "$siteTempPath/$relativeFilePath");
+                                    }
+                                    $filesProgressBar->advance();
+                                }
+
+                                $filesProgressBar->finish();
+                                $output->writeln("");
+                            }
+
+
                             // Compress files
                             $archiveName = "{$site}_{$currentTimestamp}.tar.gz";
                             $archivePath = "{$siteTempPath}/{$archiveName}";
