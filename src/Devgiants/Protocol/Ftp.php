@@ -171,9 +171,8 @@ class Ftp implements ProtocolInterface
         if (@ftp_delete ($this->connectionResource, $path) === false) {
             if ($children = @ftp_nlist ($this->connectionResource, $path)) {
                 foreach ($children as $p)
-                    $this->delete($this->connectionResource, $p);
+                    $this->delete($p, $recursive);
             }
-
             @ftp_rmdir($this->connectionResource, $path);
         }
     }
