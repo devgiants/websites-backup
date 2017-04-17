@@ -119,7 +119,7 @@ class RetrieveBackupCommand extends Command
                         $fs->mkdir($tempRootDir);
 
                         foreach($currentProtocol->getItemsList($backupChosen) as $remoteFile) {
-                            $name = pathinfo($remoteFile, PATHINFO_FILENAME);
+                            $name = pathinfo($remoteFile, PATHINFO_BASENAME);
                             $output->write("Start retrieving for <info>{$name}</info> file, storing it at <comment>{$tempRootDir}/{$name}</comment>...");
                             $currentProtocol->get($remoteFile, "{$tempRootDir}/{$name}");
                             $output->write("<info> DONE</info>" . PHP_EOL);
