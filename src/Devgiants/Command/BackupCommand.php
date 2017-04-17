@@ -182,7 +182,12 @@ class BackupCommand extends Command
                                 foreach ($includedFiles as $file) {
                                     if(!in_array($file->getRealPath(), $excludedFiles)) {
                                         $relativeFilePath = substr($file->getRealPath(), strlen($siteConfiguration['files']['root_dir']), strlen($file->getRealPath()));
-                                        $fs->copy($file->getRealPath(), "$siteTempPath/$relativeFilePath");
+                                        // Check file name length to avoid tar exception if name longer than 100 char
+                                        if(strlen(pathinfo($relativeFilePath, PATHINFO_FILENAME)) < 100) {
+                                            $fs->copy($file->getRealPath(), "$siteTempPath/$relativeFilePath");
+                                        } else {
+                                            // TODO log it + make a list to let user know he have to change those name if he wants them to be saved
+                                        }
                                     }
                                     $filesProgressBar->advance();
                                 }
