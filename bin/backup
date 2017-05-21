@@ -27,7 +27,7 @@ $manifest = json_decode($manifest)[0];
 
 // Display warning
 if($manifest->version > $application->getVersion()) {
-    echo "Newer version is available (you run {$application->getVersion()} while last stable version is {$manifest->version}). Run self-update command to update";
+    echo "Newer version is available (you run {$application->getVersion()} while last stable version is {$manifest->version}). Run self-update command to update" . PHP_EOL . PHP_EOL;
 }
 
 // Register commands
