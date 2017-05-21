@@ -128,7 +128,7 @@ class BackupCommand extends Command
                         $dumpPath = self::TEMP_PATHS[ApplicationConfiguration::DATABASE] .$dumpName;
 
                         $output->write("   - Start database export and compression...");
-                        exec("mysqldump --user={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::USER]} --password='{$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::PASSWORD]}' --single-transaction {$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::NAME]} | gzip > $dumpPath");
+                        exec("mysqldump --host={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::DATABASE_SERVER]} --user={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::USER]} --password='{$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::PASSWORD]}' --single-transaction {$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::NAME]} | gzip > $dumpPath");
                         $output->write("<info> DONE</info>" . PHP_EOL);
                     }
                     /*********************************************
