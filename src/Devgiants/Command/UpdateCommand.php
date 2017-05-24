@@ -42,7 +42,9 @@ class UpdateCommand extends Command
         $previousVersion = $this->getApplication()->getVersion();
 
         if($manager->update($this->getApplication()->getVersion(), true)) {
+            $output->writeln(" ");
             $output->writeln("<fg=black;bg=green>Application was successfully updated from {$previousVersion} to {$manager->getManifest()->findRecent(Version::create($previousVersion))->getVersion()->__toString()}</>");
+            $output->writeln(" ");
         } else {
             $output->writeln("<fg=black;bg=green>Application is up-to-date ({$previousVersion})</>");
         }
