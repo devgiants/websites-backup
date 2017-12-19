@@ -1,4 +1,4 @@
-# Websites Backup 1.1.0
+# Websites Backup 1.1.1
 ## Presentation
 Allow to backup sites (databases + files) easily using a YML configuration file.
 
@@ -6,10 +6,10 @@ Allow to backup sites (databases + files) easily using a YML configuration file.
 
 ```
 # Get the application
-wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.1.0.phar
+wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.1.1.phar
 
 # Move it in command folder
-mv website-backup-1.1.0.phar /usr/bin/backup
+mv website-backup-1.1.1.phar /usr/bin/backup
 
 # Make it executable
 chmod u+x /usr/bin/backup
