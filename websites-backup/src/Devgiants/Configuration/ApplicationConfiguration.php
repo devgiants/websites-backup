@@ -23,6 +23,11 @@ class ApplicationConfiguration implements ConfigurationInterface
         self::NODE_DEFAULT_VALUE => 5
     ];
 
+	const LOG_NODE = [
+		self::NODE_NAME => 'log_folder',
+		self::NODE_DEFAULT_VALUE => '~/websites-backup-logs/'
+	];
+
     const SITES = 'sites';
     const BACKUP_STORAGES = 'backup_storages';
 
@@ -75,6 +80,10 @@ class ApplicationConfiguration implements ConfigurationInterface
                     ->defaultValue(static::REMANENCE_NODE[static::NODE_DEFAULT_VALUE])
                     ->info('Contains the backup folders max value to keep on defined storages')
                 ->end()
+		        ->scalarNode(static::LOG_NODE[static::NODE_NAME])
+			        ->defaultValue(static::LOG_NODE[static::NODE_DEFAULT_VALUE])
+			        ->info('Contains the backup log folder')
+		        ->end()
                 ->arrayNode(static::SITES)
                     ->isRequired()
                     ->requiresAtLeastOneElement()

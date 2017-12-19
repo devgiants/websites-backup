@@ -10,6 +10,8 @@ namespace Devgiants\Command;
 use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration;
 use Ifsnop\Mysqldump\Mysqldump;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
 use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -18,8 +20,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
-use Symfony\Component\Yaml\Exception\ParseException;
 
 class BackupCommand extends Command
 {
@@ -36,10 +36,18 @@ class BackupCommand extends Command
      */
     private $container;
 
+	/**
+	 * @var Logger
+	 */
+    private $log;
+
     public function __construct($name, Container $container)
     {
         $this->container = $container;
         parent::__construct($name);
+
+        // Initiates logging
+	    $this->log = new Logger('main');
     }
 
     /**
@@ -63,8 +71,6 @@ class BackupCommand extends Command
         // Get conf file
         $ymlFile = $input->getOption(self::FILE_OPTION);
 
-        //TODO add logs
-
         if($ymlFile !== null && is_file($ymlFile)) {
             try {
 
@@ -72,6 +78,11 @@ class BackupCommand extends Command
                 $configurationManager = new ConfigurationManager($ymlFile);
                 $configuration = $configurationManager->load();
 
+                // Defines 2 handler : one common, one one detailled
+	            $this->log
+		            ->pushHandler(new RotatingFileHandler("{$configuration[ApplicationConfiguration::LOG_NODE[ApplicationConfiguration::NODE_NAME]]}/", Logger::DEBUG))
+		            ->pushHandler(new RotatingFileHandler('path/to/your.log', Logger::WARNING))
+	            ;
 
                 /*********************************************
                  * Temp paths

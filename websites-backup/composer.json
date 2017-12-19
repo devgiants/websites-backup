@@ -9,7 +9,8 @@
         "symfony/config": "^3.2",
         "hanneskod/classtools": "~1.0",
         "pimple/pimple": "~3.0",
-        "ifsnop/mysqldump-php": "2.*"
+        "ifsnop/mysqldump-php": "2.*",
+        "monolog/monolog": "^1.23"
     },
     "autoload": {
         "psr-4": {
