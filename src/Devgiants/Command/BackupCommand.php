@@ -9,6 +9,7 @@ namespace Devgiants\Command;
 
 use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration;
+use Ifsnop\Mysqldump\Mysqldump;
 use Pimple\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -111,34 +112,28 @@ class BackupCommand extends Command
                      */
                     if (isset($siteConfiguration['database'])) {
                         $output->writeln("<comment>  - Databases</comment>");
-                        $output->write("   - Connection to database server...");
-                        $mysqli = new \mysqli(
-                                        $siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::SERVER],
-                                        $siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::USER],
-                                        $siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::PASSWORD]);
 
-                        // Handle connection failure
-                        if ($mysqli->connect_errno) {
-                            $output->writeln("<error>   - Connection failure : {$mysqli->connect_error}</error>");
-                            // TODO logs + mails
-                            exit();
-                        }
-                        $output->write("<info> DONE</info>" . PHP_EOL);
                         $dumpName = "{$site}_{$currentTimestamp}.sql.gz";
                         $dumpPath = self::TEMP_PATHS[ApplicationConfiguration::DATABASE] .$dumpName;
 
-                        $output->write("   - Start database export and compression...");
+	                    try {
+		                    $dump = new Mysqldump(
+		                    	"mysql:host={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::SERVER]};dbname={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::NAME]}",
+			                    $siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::USER],
+			                    $siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::PASSWORD],
+			                    [
+			                    	// TODO add compression as an option per site dump
+			                    	'compress' => Mysqldump::GZIP
+			                    ]
+		                    );
 
-
-                        // Handle hostpart if necessary
-                        if(isset($siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::DATABASE_SERVER[ApplicationConfiguration::NODE_NAME]])) {
-                            $hostPart = "--host={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::DATABASE_SERVER[ApplicationConfiguration::NODE_NAME]]}";
-                        } else {
-                            $hostPart = "";
-                        }
-
-                        exec("mysqldump $hostPart --user={$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::USER]} --password='{$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::PASSWORD]}' --single-transaction {$siteConfiguration[ApplicationConfiguration::DATABASE][ApplicationConfiguration::NAME]} | gzip > $dumpPath");
-                        $output->write("<info> DONE</info>" . PHP_EOL);
+                            $output->write("   - Start database export and compression...");
+		                    $dump->start($dumpPath);
+                            $output->write("<info> DONE</info>" . PHP_EOL);
+	                    } catch (\Exception $e) {
+		                    echo 'mysqldump-php error: ' . $e->getMessage();
+		                    $output->writeln("<error>   - mysqldump-php error : {$e->getMessage()}</error>");
+	                    }
                     }
                     /*********************************************
                      * Files

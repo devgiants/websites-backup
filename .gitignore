@@ -2,3 +2,4 @@
 vendor
 box
 /website-backup.phar
+backup.yml

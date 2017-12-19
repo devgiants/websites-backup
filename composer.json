@@ -8,7 +8,8 @@
         "symfony/yaml": "^3.2",
         "symfony/config": "^3.2",
         "hanneskod/classtools": "~1.0",
-        "pimple/pimple": "~3.0"
+        "pimple/pimple": "~3.0",
+        "ifsnop/mysqldump-php": "2.*"
     },
     "autoload": {
         "psr-4": {
