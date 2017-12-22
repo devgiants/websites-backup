@@ -12,3 +12,6 @@ box
 /website-backup.phar
 /box.json
 /composer.lock
+backup.yml
+data
+docker
