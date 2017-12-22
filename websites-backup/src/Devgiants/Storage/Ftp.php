@@ -6,15 +6,15 @@
  * Time: 23:06
  */
 
-namespace Devgiants\Protocol;
+namespace Devgiants\Storage;
 
 
 use Devgiants\Configuration\ApplicationConfiguration;
 use Devgiants\Configuration\ConfigurationManager;
-use Devgiants\Model\ProtocolInterface;
+use Devgiants\Model\StorageInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
-class Ftp implements ProtocolInterface
+class Ftp implements StorageInterface
 {
     /**
      * @var resource the FTP connection resource

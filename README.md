@@ -87,9 +87,9 @@ The command will ask you :
 
 Then it will put the files (basically tar + sql files) in /tmp folder.
 
-The application is modular, each storage is created a Devgiants/Protocol/Protocol class instance.
+The application is modular, each storage is created a Devgiants/Storage/Storage class instance.
 
-More to come : SSH Protocol, Local filesystem Protocol, tests...
+More to come : SSH Storage, Local filesystem Storage, tests...
 
 ### Self-update
 `backup self-update` will automatically update the PHAR archive.

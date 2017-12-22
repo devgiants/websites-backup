@@ -25,7 +25,7 @@ class ApplicationConfiguration implements ConfigurationInterface
 
 	const LOG_NODE = [
 		self::NODE_NAME => 'log_folder',
-		self::NODE_DEFAULT_VALUE => '~/websites-backup-logs/'
+		self::NODE_DEFAULT_VALUE => '/tmp/websites-backup-logs/'
 	];
 
     const SITES = 'sites';

@@ -11,7 +11,7 @@ namespace Devgiants\Model;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
-interface ProtocolInterface
+interface StorageInterface
 {
     const REMANENCE = 5;
     /**
