@@ -12,7 +12,9 @@ namespace Devgiants\Service;
 use Devgiants\Configuration\ApplicationConfiguration;
 use Devgiants\Model\StorageInterface;
 use hanneskod\classtools\Iterator\ClassIterator;
+use Monolog\Logger;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 
 class BackupTools
@@ -55,5 +57,21 @@ class BackupTools
          */
         return new $availableStorages[$storageParams[ApplicationConfiguration::STORAGE_TYPE]]($storageParams);
 
+    }
+
+	/**
+	 * @param OutputInterface $output
+	 * @param Logger $log
+	 * @param \Exception $e
+	 */
+    public function maximumDetailsErrorHandling(OutputInterface $output, Logger $log, \Exception $e) {
+	    $output->writeln( "<error>Error happened : {$e->getMessage()}</error>" );
+	    $log->addError( "Error", [
+		    'message' => $e->getMessage(),
+		    'code'    => $e->getCode(),
+		    'file'    => $e->getFile(),
+		    'line'    => $e->getLine(),
+		    'stack'   => $e->getTraceAsString()
+	    ] );
     }
 }
