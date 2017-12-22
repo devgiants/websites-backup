@@ -117,3 +117,10 @@ Logs are quite verbose. 2 distincts channels are created :
 - one channel per site on each command (backup and retrieve)
 
 Both are implemented using the `RotatingFileHandler` from Monolog.
+
+### Boxing PHAR
+You need PHP + [Box](https://github.com/box-project/box2) on host machine. Here is the process :
+
+1. Make your edits
+2. Commit and create tag (the box configuration here uses the last tag)
+3. Run `box build` and get your shiny new PHAR.
