@@ -10,7 +10,8 @@
         "hanneskod/classtools": "~1.0",
         "pimple/pimple": "~3.0",
         "ifsnop/mysqldump-php": "2.*",
-        "monolog/monolog": "^1.23"
+        "monolog/monolog": "^1.23",
+        "kunalvarma05/dropbox-php-sdk": "^0.2.1"
     },
     "autoload": {
         "psr-4": {
