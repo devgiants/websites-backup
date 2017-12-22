@@ -31,7 +31,7 @@ RUN ln -s /etc/php/7.0/mods-available/php-custom.ini /etc/php/7.0/cli/conf.d/php
 COPY config/etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/mods-available/xdebug.ini
 
 # Allow PHAR generation
-RUN echo "phar.readonly = Off" >> /etc/php/7.0/cli/php.ini
+#RUN echo "phar.readonly = Off" >> /etc/php/7.0/cli/php.ini
 
 # Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
@@ -39,9 +39,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');"
 
 # Box
-RUN curl -LSs https://box-project.github.io/box2/installer.php | php
-RUN mv box.phar /usr/local/bin/box
-RUN chmod u+x /usr/local/bin/box
+#RUN curl -LSs https://box-project.github.io/box2/installer.php | php
+#RUN mv box.phar /usr/local/bin/box
+#RUN chmod u+x /usr/local/bin/box
 
 RUN usermod -u ${UID} www-data
 

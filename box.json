@@ -1,6 +1,6 @@
 {
   "chmod": "0755",
-  "directories": ["src"],
+  "directories": ["websites-backup/src"],
   "files": [
     "LICENSE",
     "README.md"
@@ -8,12 +8,12 @@
   "finder": [
     {
       "name": ["*.php", "*.json"],
-      "exclude": ["Tests"],
-      "in": "vendor"
+      "exclude": ["websites-backup/Tests"],
+      "in": "websites-backup/vendor"
     }
   ],
   "git-version": "package_version",
-  "main": "bin/backup",
+  "main": "websites-backup/bin/backup",
   "output": "website-backup.phar",
   "stub": true
 }
