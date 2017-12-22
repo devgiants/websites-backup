@@ -13,12 +13,14 @@ use Symfony\Component\Console\Application;
 use Devgiants\Command;
 use Pimple\Container;
 use Devgiants\Service\BackupTools;
+use Monolog\Logger;
 
 $application = new Application('backup', '@package_version@');
 
+// Handle dependancies
 $container = new Container();
-
 $container['tools'] = new BackupTools();
+$container['main_logger'] = new Logger( 'main' );
 
 // Check newer version
 $manifest = file_get_contents(Command\UpdateCommand::MANIFEST_FILE_URL);

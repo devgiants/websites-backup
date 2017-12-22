@@ -11,6 +11,7 @@ namespace Devgiants\Command;
 use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration as AppConf;
 use Devgiants\Exception\FailedStorageUploadException;
+use Devgiants\Model\ApplicationCommand;
 use Devgiants\Service\BackupTools;
 use Ifsnop\Mysqldump\Mysqldump;
 use Monolog\Handler\RotatingFileHandler;
@@ -26,7 +27,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Exception\ParseException;
 
-class BackupCommand extends Command {
+class BackupCommand extends ApplicationCommand {
 	const FILE_OPTION = "file";
 	const ROOT_TEMP_PATH = "/tmp/websites-backups/";
 	const FILES = 'files';
@@ -36,31 +37,13 @@ class BackupCommand extends Command {
 	];
 
 	/**
-	 * @var Container
+	 * RetrieveBackupCommand constructor.
+	 *
+	 * @param null|string $name
+	 * @param Container $container
 	 */
-	private $container;
-
-	/**
-	 * @var Logger
-	 */
-	private $log;
-
-	/**
-	 * @var BackupTools
-	 */
-	private $tools;
-
 	public function __construct( $name, Container $container ) {
-		$this->container = $container;
-		parent::__construct( $name );
-
-		// Initiates logging
-		$this->log = new Logger( 'main' );
-
-		$this->tools = $this->container['tools'];
-		if ( ! $this->tools instanceof BackupTools ) {
-			throw new InvalidArgumentException( "Container tools entry must be BackupTool type" );
-		}
+		parent::__construct( $name, $container );
 	}
 
 	/**
@@ -304,7 +287,7 @@ class BackupCommand extends Command {
 									$siteLog->addDebug( "Database dump moved to {$remoteDir}{$dumpName}" );
 									$output->write( "<info> DONE</info>" . PHP_EOL );
 								} else {
-									throw new FailedStorageUploadException("Dump {$dumpPath} failed to be uploaded to {$storageKey} ({$storage[AppConf::STORAGE_TYPE]}) to path {$remoteDir}{$dumpName}");
+									throw new FailedStorageUploadException( "Dump {$dumpPath} failed to be uploaded to {$storageKey} ({$storage[AppConf::STORAGE_TYPE]}) to path {$remoteDir}{$dumpName}" );
 								}
 							}
 
@@ -314,9 +297,8 @@ class BackupCommand extends Command {
 								if ( $currentStorage->put( $archivePath, $remoteDir . $archiveName ) ) {
 									$siteLog->addDebug( "Archive  moved to {$remoteDir}{$archiveName}" );
 									$output->write( "<info> DONE</info>" . PHP_EOL );
-								}
-								else {
-									throw new FailedStorageUploadException("Archive {$archivePath} failed to be uploaded to {$storageKey} ({$storage[AppConf::STORAGE_TYPE]}) to path {$remoteDir}{$dumpName}");
+								} else {
+									throw new FailedStorageUploadException( "Archive {$archivePath} failed to be uploaded to {$storageKey} ({$storage[AppConf::STORAGE_TYPE]}) to path {$remoteDir}{$dumpName}" );
 								}
 							}
 
@@ -362,7 +344,7 @@ class BackupCommand extends Command {
 
 			} catch ( ParseException $e ) {
 				$output->writeln( "<error>Unable to parse the YAML string : {$e->getMessage()}</error>" );
-				$this->log->addError("Unable to parse the YAML string : {$e->getMessage()}");
+				$this->log->addError( "Unable to parse the YAML string : {$e->getMessage()}" );
 			} catch ( \Exception $e ) {
 				$this->tools->maximumDetailsErrorHandling( $output, $this->log, $e );
 			}
