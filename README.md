@@ -1,4 +1,4 @@
-# Websites Backup 1.1.1
+# Websites Backup 1.2.0
 ## Presentation
 Allow to backup sites (databases + files) easily using a YML configuration file.
 
@@ -6,10 +6,10 @@ Allow to backup sites (databases + files) easily using a YML configuration file.
 
 ```
 # Get the application
-wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.1.1.phar
+wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.2.0.phar
 
 # Move it in command folder
-mv website-backup-1.1.1.phar /usr/bin/backup
+mv website-backup-1.2.0.phar /usr/bin/backup
 
 # Make it executable
 chmod u+x /usr/bin/backup
@@ -28,6 +28,8 @@ Below a full YAML example, commented :
 configuration:
   # this is the max backup number you accept to keep on each storage media provided below
   remanence: 5
+  # this is the log path you want. Default to /tmp/websites-backup-logs/
+  log_folder: "/path/to/log/folder"
   sites:
     # Add as much site section as you want. The key here is free, and will be used on retrieve command
     site-1:
@@ -89,7 +91,14 @@ Then it will put the files (basically tar + sql files) in /tmp folder.
 
 The application is modular, each storage is created a Devgiants/Storage/Storage class instance.
 
-More to come : SSH Storage, Local filesystem Storage, tests...
+More to come : Dropbox storage, SSH Storage, Local filesystem Storage, backup executed as user, tests...
 
 ### Self-update
 `backup self-update` will automatically update the PHAR archive.
+
+## Logs
+Logs are quite verbose. 2 distincts channels are created :
+- the `main` one for global events
+- one channel per site on each command (backup and retrieve)
+
+Both are implemented using the `RotatingFileHandler` from Monolog.
