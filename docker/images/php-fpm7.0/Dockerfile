@@ -30,13 +30,10 @@ RUN ln -s /etc/php/7.0/mods-available/php-custom.ini /etc/php/7.0/cli/conf.d/php
 # La config de xdebug est automatiquement ajoutée dans fpm et cli
 COPY config/etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/mods-available/xdebug.ini
 
-#RUN chown -R root:www-data /var/log/
-#RUN chmod -R 775 /var/log
+# Allow PHAR generation
+RUN echo "phar.readonly = Off" >> /etc/php/7.0/cli/php.ini
 
-# Installation utilitaires
-#RUN apt-get install -y git iproute2 vim
-
-# Installation de composer
+# Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
