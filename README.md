@@ -96,7 +96,22 @@ More to come : Dropbox storage, SSH Storage, Local filesystem Storage, backup ex
 ### Self-update
 `backup self-update` will automatically update the PHAR archive.
 
-## Logs
+## Dev and dev usage
+### Docker stack
+The app comes with an Docker stack which configure 3 images :
+- PHP FPM (including Composer and Box for PHAR packaging)
+- MySQL
+- PHPMyAdmin
+
+As it's a pure console app, two last are just here on dev testing purpose because it allow app to connect to MySQL.
+
+#### First run 
+Just update `.env` file with you data. Then you can execute `init.sh`.
+
+#### Day-to-day work
+Just do a `docker-compose up -d` like any other Docker stack.
+
+### Logs
 Logs are quite verbose. 2 distincts channels are created :
 - the `main` one for global events
 - one channel per site on each command (backup and retrieve)
