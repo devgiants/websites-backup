@@ -21,23 +21,26 @@ interface StorageInterface
 
     /**
      * @param string $localPath
-     * @param string $remotePath
+     * @param string $remotePath relative remote path to store file to
+     * @param array $params params contains additional informations, such as root_dir, in case Storage works by absolute path
      * @return bool
      */
-    public function put($localPath, $remotePath);
+    public function put($localPath, $remotePath, array $params = null);
 
     /**
-     * @param $remotePath
+     * @param string $remotePath relative remote path to get files from
+     * @param array $params params contains additional informations, such as root_dir, in case Storage works by absolute path
      * @return array
      */
-    public function getItemsList($remotePath);
+    public function getItemsList($remotePath, array $params = null);
 
     /**
-     * @param string $remotePath
+     * @param string $remotePath relative remote path to get file from
      * @param string $localPath
+     * @param array $params params contains additional informations, such as root_dir, in case Storage works by absolute path
      * @return bool
      */
-    public function get($remotePath, $localPath);
+    public function get($remotePath, $localPath, array $params = null);
 
     /**
      * @param $path
@@ -55,9 +58,10 @@ interface StorageInterface
 
     /**
      * @param int $retention
+     * @param array $params params contains additional informations, such as root_dir, in case Storage works by absolute path
      * @return mixed
      */
-    public function handleRetention(int $retention);
+    public function handleRetention(int $retention, array $params = null);
 
     /**
      * @return mixed

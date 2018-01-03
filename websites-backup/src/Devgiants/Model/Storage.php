@@ -9,6 +9,14 @@
 namespace Devgiants\Model;
 
 
-class Storage {
+abstract class Storage implements StorageInterface {
 
+	/**
+	 * @param string $path
+	 *
+	 * @return string
+	 */
+	public function sanitizePath($path) {
+		return preg_replace('#/+#','/',$path);
+	}
 }
