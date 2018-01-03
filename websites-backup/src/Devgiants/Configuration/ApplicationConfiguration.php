@@ -40,12 +40,12 @@ class ApplicationConfiguration implements ConfigurationInterface
     const SERVER = 'server';
     const USER = 'user';
     const PASSWORD = "password";
-    
+
     const DATABASE_SERVER = [
         self::NODE_NAME => self::SERVER,
         self::NODE_DEFAULT_VALUE => 'localhost'
     ];
-    
+
 
     const FILES = 'files';
 
@@ -55,9 +55,11 @@ class ApplicationConfiguration implements ConfigurationInterface
 
     const FTP = 'FTP';
     const SSH = 'SSH';
+	const DROPBOX = 'Dropbox';
     const AUTHORIZED_STORAGE = [
         self::FTP,
-        self::SSH
+        self::SSH,
+	    self::DROPBOX
     ];
 
     const STORAGE_TYPE = 'type';
@@ -67,12 +69,17 @@ class ApplicationConfiguration implements ConfigurationInterface
     const PASSIVE = 'passive';
     const TRANSFER = 'transfer';
 
+    /* Dropbox specific */
+	const ACCESS_TOKEN = "access_token";
+	const CLIENT_ID = "client_id";
+	const CLIENT_SECRET = "client_secret";
+
 
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root(static::ROOT_NODE);
-        
+
         // add node definitions to the root of the tree
         $rootNode
             ->children()
@@ -133,6 +140,10 @@ class ApplicationConfiguration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
+					        ->arrayNode(static::BACKUP_STORAGES)
+						        ->requiresAtLeastOneElement()
+						        ->prototype('scalar')->end()
+					        ->end()
                             ->arrayNode(static::POST_SAVE_COMMANDS)
                                 ->requiresAtLeastOneElement()
                                 ->prototype('scalar')->end()
@@ -164,17 +175,17 @@ class ApplicationConfiguration implements ConfigurationInterface
                             ->end()
                             ->scalarNode(static::SERVER)
                                 ->info('Contains the server to connect with')
-                                ->isRequired()
+//                                ->isRequired()
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode(static::USER)
                                 ->info('Contains the user to connect server with')
-                                ->isRequired()
+//                                ->isRequired()
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode(static::PASSWORD)
                                 ->info('Contains the password to connect server with')
-                                ->isRequired()
+//                                ->isRequired()
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode(static::ROOT_DIR)
@@ -182,6 +193,21 @@ class ApplicationConfiguration implements ConfigurationInterface
                                 ->isRequired()
                                 ->cannotBeEmpty()
                             ->end()
+					        ->scalarNode(static::CLIENT_ID)
+						        ->info('The Dropbox app client id')
+//						        ->isRequired()
+						        ->cannotBeEmpty()
+					        ->end()
+					        ->scalarNode(static::CLIENT_SECRET)
+						        ->info('The Dropbox app client secret')
+//						        ->isRequired()
+						        ->cannotBeEmpty()
+					        ->end()
+					        ->scalarNode(static::ACCESS_TOKEN)
+						        ->info('The Dropbox app access token')
+//						        ->isRequired()
+						        ->cannotBeEmpty()
+					        ->end()
                         ->end()
                 ->end()
         ;

@@ -12,13 +12,10 @@ use Devgiants\Configuration\ConfigurationManager;
 use Devgiants\Configuration\ApplicationConfiguration as AppConf;
 use Devgiants\Exception\FailedStorageUploadException;
 use Devgiants\Model\ApplicationCommand;
-use Devgiants\Service\BackupTools;
 use Ifsnop\Mysqldump\Mysqldump;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 use Pimple\Container;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -265,24 +262,37 @@ class BackupCommand extends ApplicationCommand {
 						$output->writeln( "<comment>  - Storage</comment>" );
 						$siteLog->addDebug( "Start storage task" );
 
-						foreach ( $configuration[ AppConf::BACKUP_STORAGES ] as $storageKey => $storage ) {
+						// Build storage array to loop on for saving
+						$selectedStorages = [];
+						if(count($siteConfiguration[AppConf::BACKUP_STORAGES]) > 0) {
+							foreach($siteConfiguration[AppConf::BACKUP_STORAGES] as $selectedStorageKey) {
+								$siteLog->addDebug( "Specific storage chosen : {$selectedStorageKey}" );
+								$selectedStorages[$selectedStorageKey] = $configuration[ AppConf::BACKUP_STORAGES ][$selectedStorageKey];
+							}
+						} else {
+							$siteLog->addDebug( 'All storage chosen' );
+							$selectedStorages = $configuration[AppConf::BACKUP_STORAGES];
+						}
+
+						foreach ( $selectedStorages as $storageKey => $storage ) {
 
 							$currentStorage = $this->tools->getStorageByType( $storage );
 							$siteLog->addDebug( "Start storage on {$storageKey} ({$storage[AppConf::STORAGE_TYPE]})" );
-
+							$output->write( "   - Start storage on {$storageKey} ({$storage[AppConf::STORAGE_TYPE]})" . PHP_EOL );
 							// Connection
-							$output->write( "   - Trying connection..." );
+							$output->write( "     - Trying connection..." );
 							$currentStorage->connect();
 							$siteLog->addDebug( "Connected to storage" );
 							$output->write( "<info> CONNECTED</info>" . PHP_EOL );
 
-							$remoteDir = "{$storage['root_dir']}/{$site}/{$currentTimestamp}/";
+							$remoteRootDir = "{$storage['root_dir']}/{$site}";
+							// TODO add trim start and trailing slashes (no more than once)
+							$remoteDir = "{$remoteRootDir}/{$currentTimestamp}/";
 							$siteLog->addDebug( "Creates target remote directory : {$remoteDir}" );
 							$currentStorage->makeDir( $remoteDir );
-
 							// Dump
 							if ( isset( $dumpName ) && isset( $dumpPath ) ) {
-								$output->write( "   - Start dump move..." );
+								$output->write( "     - Start dump move..." );
 								if ( $currentStorage->put( $dumpPath, $remoteDir . $dumpName ) ) {
 									$siteLog->addDebug( "Database dump moved to {$remoteDir}{$dumpName}" );
 									$output->write( "<info> DONE</info>" . PHP_EOL );
@@ -293,7 +303,7 @@ class BackupCommand extends ApplicationCommand {
 
 							// Archive
 							if ( isset( $archiveName ) && isset( $archivePath ) ) {
-								$output->write( "   - Start archive move..." );
+								$output->write( "     - Start archive move..." );
 								if ( $currentStorage->put( $archivePath, $remoteDir . $archiveName ) ) {
 									$siteLog->addDebug( "Archive  moved to {$remoteDir}{$archiveName}" );
 									$output->write( "<info> DONE</info>" . PHP_EOL );
@@ -306,7 +316,9 @@ class BackupCommand extends ApplicationCommand {
 							 * Retention
 							 */
 							$siteLog->addDebug( "Handle retention" );
-							$currentStorage->handleRetention( $configuration[ AppConf::REMANENCE_NODE[ AppConf::NODE_NAME ] ] );
+							$currentStorage->handleRetention( $configuration[ AppConf::REMANENCE_NODE[ AppConf::NODE_NAME ] ], [
+								'root_dir' => $remoteRootDir
+							]);
 						}
 
 						$siteLog->addDebug( "End storage task" );

@@ -104,6 +104,8 @@ class RetrieveBackupCommand extends ApplicationCommand {
 					$this->log->addDebug( "Storage populated" );
 
 					$currentStorage->connect();
+
+					// Get sites list from root dir. No params in this case
 					$sitesBackuped = $currentStorage->getItemsList( $currentStorageData[ AppConf::ROOT_DIR ] );
 					$this->log->addDebug( "Backuped sites list", [ 'sites' => $sitesBackuped ] );
 
@@ -118,7 +120,8 @@ class RetrieveBackupCommand extends ApplicationCommand {
 						$siteChosen = $helper->ask( $input, $output, $question );
 						$this->log->addDebug( "Site chosen : {$siteChosen}" );
 
-						$backups = $currentStorage->getItemsList( $siteChosen );
+						// Get backups. pass root dir for complete path
+						$backups = $currentStorage->getItemsList( $siteChosen, [ 'root_dir' => $currentStorageData[ AppConf::ROOT_DIR ] ] );
 						$this->log->addDebug( "Backups available", [ 'backup' => $backups ] );
 
 						$helper   = $this->getHelper( 'question' );
@@ -132,19 +135,25 @@ class RetrieveBackupCommand extends ApplicationCommand {
 						$this->log->addDebug( "Backup chosen : {$backupChosen}" );
 
 						// TODO add retrieve folder option
-						$fs          = new Filesystem();
-						$tempRootDir = "/tmp{$backupChosen}";
+						$fs = new Filesystem();
+
+						if ( strpos( $backupChosen, $currentStorageData[ AppConf::ROOT_DIR ] ) !== false ) {
+							$tempRootDir = "/tmp{$backupChosen}";
+						} else {
+							$tempRootDir = "/tmp/{$siteChosen}/{$backupChosen}";
+						}
 						if ( $fs->exists( $tempRootDir ) ) {
 							$this->log->addDebug( "Temp dir {$tempRootDir} exists, kill it." );
 							$fs->remove( $tempRootDir );
 						}
 						$fs->mkdir( $tempRootDir );
 
-						foreach ( $currentStorage->getItemsList( $backupChosen ) as $remoteFile ) {
+						// Get items. pass root dir + site chosen for complete path
+						foreach ( $currentStorage->getItemsList( $backupChosen, [ 'root_dir' => "{$currentStorageData[ AppConf::ROOT_DIR ]}/{$siteChosen}" ] ) as $remoteFile ) {
 							$name = pathinfo( $remoteFile, PATHINFO_BASENAME );
 							$this->log->addDebug( "Start retrieving {$name}, storing it at <comment>{$tempRootDir}/{$name}" );
 							$output->write( "Start retrieving for <info>{$name}</info> file, storing it at <comment>{$tempRootDir}/{$name}</comment>..." );
-							$currentStorage->get( $remoteFile, "{$tempRootDir}/{$name}" );
+							$currentStorage->get( $remoteFile, "{$tempRootDir}/{$name}", [ 'root_dir' => "{$currentStorageData[ AppConf::ROOT_DIR ]}/{$siteChosen}/{$backupChosen}" ] );
 							$this->log->addDebug( "Done" );
 							$output->write( "<info> DONE</info>" . PHP_EOL );
 						}
