@@ -80,6 +80,7 @@ class ApplicationConfiguration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root(static::ROOT_NODE);
 
+        // TODO total review to be done see https://github.com/devgiants/websites-backup/projects/1
         // add node definitions to the root of the tree
         $rootNode
             ->children()
@@ -140,6 +141,7 @@ class ApplicationConfiguration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
+	                        // TODO make checks to ensure storage is defined
 					        ->arrayNode(static::BACKUP_STORAGES)
 						        ->requiresAtLeastOneElement()
 						        ->prototype('scalar')->end()

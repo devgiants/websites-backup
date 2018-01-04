@@ -264,14 +264,14 @@ class BackupCommand extends ApplicationCommand {
 
 						// Build storage array to loop on for saving
 						$selectedStorages = [];
-						if(count($siteConfiguration[AppConf::BACKUP_STORAGES]) > 0) {
-							foreach($siteConfiguration[AppConf::BACKUP_STORAGES] as $selectedStorageKey) {
+						if ( count( $siteConfiguration[ AppConf::BACKUP_STORAGES ] ) > 0 ) {
+							foreach ( $siteConfiguration[ AppConf::BACKUP_STORAGES ] as $selectedStorageKey ) {
 								$siteLog->addDebug( "Specific storage chosen : {$selectedStorageKey}" );
-								$selectedStorages[$selectedStorageKey] = $configuration[ AppConf::BACKUP_STORAGES ][$selectedStorageKey];
+								$selectedStorages[ $selectedStorageKey ] = $configuration[ AppConf::BACKUP_STORAGES ][ $selectedStorageKey ];
 							}
 						} else {
 							$siteLog->addDebug( 'All storage chosen' );
-							$selectedStorages = $configuration[AppConf::BACKUP_STORAGES];
+							$selectedStorages = $configuration[ AppConf::BACKUP_STORAGES ];
 						}
 
 						foreach ( $selectedStorages as $storageKey => $storage ) {
@@ -318,7 +318,7 @@ class BackupCommand extends ApplicationCommand {
 							$siteLog->addDebug( "Handle retention" );
 							$currentStorage->handleRetention( $configuration[ AppConf::REMANENCE_NODE[ AppConf::NODE_NAME ] ], [
 								'root_dir' => $remoteRootDir
-							]);
+							] );
 						}
 
 						$siteLog->addDebug( "End storage task" );

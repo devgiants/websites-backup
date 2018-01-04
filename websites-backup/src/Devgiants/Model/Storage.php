@@ -16,7 +16,7 @@ abstract class Storage implements StorageInterface {
 	 *
 	 * @return string
 	 */
-	public function sanitizePath($path) {
-		return preg_replace('#/+#','/',$path);
+	public function sanitizePath( $path ) {
+		return preg_replace( '#/+#', '/', $path );
 	}
 }

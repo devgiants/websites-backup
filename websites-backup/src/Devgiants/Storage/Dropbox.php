@@ -114,9 +114,10 @@ class Dropbox extends Storage {
 		}
 
 		return array_map( function ( $item ) {
-			if(!($item instanceof FolderMetadata) && !($item instanceof FileMetadata)) {
+			if ( ! ( $item instanceof FolderMetadata ) && ! ( $item instanceof FileMetadata ) ) {
 				throw new \InvalidArgumentException();
 			}
+
 			return $item->getName();
 		}, $this->dropbox->listFolder( $remotePath )->getItems()->all() );
 

@@ -144,7 +144,7 @@ class Ftp extends Storage {
 	/**
 	 * @inheritdoc
 	 */
-	public function getItemsList( $remotePath, array $params = null) {
+	public function getItemsList( $remotePath, array $params = null ) {
 		return ftp_nlist( $this->connectionResource, $remotePath );
 	}
 
