@@ -1,4 +1,4 @@
-# Websites Backup 1.2.0
+# Websites Backup 1.3.0
 ## Presentation
 Allow to backup sites (databases + files) easily using a YML configuration file.
 
@@ -6,10 +6,10 @@ Allow to backup sites (databases + files) easily using a YML configuration file.
 
 ```
 # Get the application
-wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.2.0.phar
+wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.3.0.phar
 
 # Move it in command folder
-mv website-backup-1.2.0.phar /usr/bin/backup
+mv website-backup-1.3.0.phar /usr/bin/backup
 
 # Make it executable
 chmod u+x /usr/bin/backup
@@ -51,6 +51,9 @@ configuration:
         exclude:
           - "my-folder/to-exclude"
           - "my-folder2/my-specific-file.file"
+        # Specific storages among those listed below. Optionnal : if not provided, backup will use all storages available
+        backup_storages:
+          - dropbox_test
       post_save_commands:
         - "mkdir /tmp/post_test_command"
 
@@ -72,8 +75,13 @@ configuration:
       # Remote root dir
       root_dir: "/sites"
 
-    ftp2:
-      ....
+    dropbox1:
+      type: Dropbox
+      # Obtain those 3 params from you dropbox account page, app section.
+      client_id: clientid
+      client_secret: clientsecret
+      access_token: accesstoken
+      root_dir: "/"
 ```
 
 ### Retrieve
@@ -91,7 +99,7 @@ Then it will put the files (basically tar + sql files) in /tmp folder.
 
 The application is modular, each storage is created a Devgiants/Storage/Storage class instance.
 
-More to come : Dropbox storage, SSH Storage, Local filesystem Storage, backup executed as user, tests...
+More to come : SSH Storage, Local filesystem Storage, backup executed as user, tests...
 
 ### Self-update
 `backup self-update` will automatically update the PHAR archive.
