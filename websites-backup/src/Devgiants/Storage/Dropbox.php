@@ -92,10 +92,7 @@ class Dropbox extends Storage {
 	 */
 	public function put( $localPath, $remotePath, array $params = null ) {
 
-		// Set path as absolute if param is given
-		if ( isset( $params[ AppConf::ROOT_DIR ] ) ) {
-			$remotePath = $this->sanitizePath( "{$params[AppConf::ROOT_DIR]}/{$remotePath}" );
-		}
+		$remotePath = $this->buildPath( $remotePath, $params );
 
 		$dropboxFile = new DropboxFile( $localPath );
 		$this->dropbox->upload( $dropboxFile, $remotePath, [ 'autorename' => static::AUTORENAME ] );
@@ -108,10 +105,7 @@ class Dropbox extends Storage {
 	 */
 	public function getItemsList( $remotePath, array $params = null ) {
 
-		// Set path as absolute if param is given
-		if ( isset( $params[ AppConf::ROOT_DIR ] ) ) {
-			$remotePath = $this->sanitizePath( "{$params[AppConf::ROOT_DIR]}/{$remotePath}" );
-		}
+		$remotePath = $this->buildPath( $remotePath, $params );
 
 		return array_map( function ( $item ) {
 			if ( ! ( $item instanceof FolderMetadata ) && ! ( $item instanceof FileMetadata ) ) {
@@ -128,10 +122,7 @@ class Dropbox extends Storage {
 	 */
 	public function get( $remotePath, $localPath, array $params = null ) {
 
-		// Set path as absolute if param is given
-		if ( isset( $params[ AppConf::ROOT_DIR ] ) ) {
-			$remotePath = $this->sanitizePath( "{$params[AppConf::ROOT_DIR]}/{$remotePath}" );
-		}
+		$remotePath = $this->buildPath( $remotePath, $params );
 
 		$remotePath     = $this->sanitizePath( $remotePath );
 		$downloadedFile = $this->dropbox->download( $remotePath, $localPath );
@@ -174,6 +165,21 @@ class Dropbox extends Storage {
 	 */
 	public function delete( $path, $recursive = true ) {
 		$this->dropbox->delete( $path );
+	}
+
+	/**
+	 * @param $remotePath
+	 * @param array|null $params
+	 *
+	 * @return string
+	 */
+	protected function buildPath( $remotePath, array $params = null ) {
+		// Set path as absolute if param is given
+		if ( isset( $params[ AppConf::ROOT_DIR ] ) ) {
+			return $this->sanitizePath( "{$params[AppConf::ROOT_DIR]}/{$remotePath}" );
+		} else {
+			return $this->sanitizePath( $remotePath );
+		}
 	}
 
 	/**
