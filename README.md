@@ -1,3 +1,6 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/devgiants/websites-backup/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/devgiants/websites-backup/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/devgiants/websites-backup/badges/build.png?b=master)](https://scrutinizer-ci.com/g/devgiants/websites-backup/build-status/master)
+[![Code Intelligence Status](https://scrutinizer-ci.com/g/devgiants/websites-backup/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
 # Websites Backup 1.3.1
 ## Presentation
 Allow to backup sites (databases + files) easily using a YML configuration file.
