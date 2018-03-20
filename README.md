@@ -9,10 +9,10 @@ Allow to backup sites (databases + files) easily using a YML configuration file.
 
 ```
 # Get the application
-wget https://devgiants.github.io/websites-backup/downloads/website-backup-1.3.2.phar
+wget https://devgiants.github.io/websites-backup/downloads/websites-backup-1.3.2.phar
 
 # Move it in command folder
-mv website-backup-1.3.2.phar /usr/bin/backup
+mv websites-backup-1.3.2.phar /usr/bin/backup
 
 # Make it executable
 chmod u+x /usr/bin/backup
