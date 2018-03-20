@@ -78,7 +78,7 @@ configuration:
       # Remote root dir
       root_dir: "/sites"
 
-    dropbox1:
+    dropbox_test:
       type: Dropbox
       # Obtain those 3 params from you dropbox account page, app section.
       client_id: clientid
